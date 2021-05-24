@@ -1,4 +1,4 @@
-name: Test Installation Script
+name: install-poetry.py Tests
 
 on:
   push:
@@ -48,6 +48,21 @@ jobs:
       - name: Install Poetry
         shell: bash
         run: python install-poetry.py -y
+
+      - name: Capture TMPDIR
+        if: ${{ failure() && matrix.os != 'Windows' }}
+        run: echo "TMPDIR=${TMPDIR}" >> $GITHUB_ENV
+
+      - name: Capture TMP for Windows
+        if: ${{ failure() && matrix.os == 'Windows' }}
+        run: echo "TMPDIR=${TMP}" >> $GITHUB_ENV
+
+      - name: Upload Failure Log
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: poetry-installer-error.log
+          path: ${{ env.TMPDIR }}/poetry-installer-error-*.log
 
       - name: Verify Installation
         shell: bash
